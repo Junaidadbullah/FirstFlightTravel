@@ -1,0 +1,64 @@
+ generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "postgresql"
+      }
+
+     // User Model (1-to-Many with Bookings & Inquiries)
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      String    @default("USER") // ADMIN or USER
+  bookings  Booking[] // One user can have many bookings
+  createdAt DateTime  @default(now())
+}
+
+// Flight Model (Product)
+model Flight {
+  id          Int       @id @default(autoincrement())
+  origin      String
+  destination String
+  price       Float
+  status      String    @default("ACTIVE")
+  bookings    Booking[] // One flight can have many bookings
+  tags        Tag[]     @relation("FlightTags") // Many-to-Many Relationship
+  createdAt   DateTime  @default(now())
+}
+
+// Booking Model (Many-to-One Relationship)
+model Booking {
+  id              Int      @id @default(autoincrement())
+  passengerName   String
+  passportNumber  String
+  contactEmail    String
+  phone           String
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // --- RELATION FIELDS FIX ---
+  flightId        Int
+  flight          Flight   @relation(fields: [flightId], references: [id]) // Ye line add karein
+
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id]) // User ke sath bhi relation
+}
+// Inquiry Model (Contact Us Messages)
+model Inquiry {
+  id        Int      @id @default(autoincrement())
+  name      String   
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+// Tag Model (Many-to-Many with Flight)
+model Tag {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  flights Flight[] @relation("FlightTags")
+}
