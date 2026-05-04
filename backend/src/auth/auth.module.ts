@@ -14,7 +14,7 @@ import { JwtStrategy } from './jwt.strategy'; // Direct import
     PassportModule,
     JwtModule.register({
       secret: 'MY_FLIGHT_SECRET_2026',
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '1m' },
     }),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],

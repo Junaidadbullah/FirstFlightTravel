@@ -5,6 +5,7 @@ import {
   UseGuards,
   Request,
   Get,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 // Yahan se /guards/ wala rasta hata diya kyunke file ab same folder mein hai
@@ -27,10 +28,32 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  
-@Get('profile')
-async getProfile(@Request() req) {
-  // req.user.userId wo ID hai jo JWT token se aati hai
-  return this.authService.getProfile(req.user.userId);
-}
+  @Get('profile')
+  async getProfile(@Request() req) {
+    // req.user.userId wo ID hai jo JWT token se aati hai
+    return this.authService.getProfile(req.user.userId);
+  }
+
+  // auth.controller.ts mein ye endpoint add karein
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(@Request() req, @Body() body) {
+    const { oldPassword, newPassword } = body;
+
+    // JWT Payload se ID nikaalne ka sahi tareeqa
+    const id = req.user.userId || req.user.id || req.user.sub;
+
+    if (!id) {
+      throw new UnauthorizedException(
+        'User ID not found in token. Please re-login.',
+      );
+    }
+
+    // Number() isliye lagaya taake agar ID string mein ho toh error na aaye
+    return this.authService.changePassword(
+      Number(id),
+      oldPassword,
+      newPassword,
+    );
+  }
 }

@@ -1,4 +1,9 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -50,15 +55,44 @@ export class AuthService {
   }
 
   async getProfile(userId: number) {
-  const user = await this.prisma.user.findUnique({
-    where: { id: userId },
-    select: { 
-      id: true, 
-      name: true,  // 👈 Ye line database se naam uthaye gi
-      email: true, 
-      role: true 
-    },
-  });
-  return user;
-}
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true, // 👈 Ye line database se naam uthaye gi
+        email: true,
+        role: true,
+      },
+    });
+    return user;
+  }
+  async changePassword(userId: number, oldPass: string, newPass: string) {
+    // 1. User ko database se dhoondein
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    // 🟢 Fix: Pehle check karein ke user null toh nahi hai
+    if (!user) {
+      throw new NotFoundException('User not found in database');
+    }
+
+    // 2. Purana password check karein (Database wala hashed hota hai)
+    const isMatch = await bcrypt.compare(oldPass, user.password);
+
+    if (!isMatch) {
+      throw new UnauthorizedException(
+        'Purana password darust nahi hai (Old password incorrect)',
+      );
+    }
+
+    // 3. Naye password ko hash karein
+    const hashedNewPassword = await bcrypt.hash(newPass, 10);
+
+    // 4. Database mein naya password update kar dein
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedNewPassword },
+    });
+  }
 }

@@ -147,7 +147,7 @@ export default function AdminDashboard() {
           <div className="space-y-10 animate-in fade-in duration-700 max-w-6xl mx-auto">
             <header>
               <h1 className="text-5xl lg:text-7xl font-black italic text-slate-900 uppercase tracking-tighter">
-                System <span className="text-blue-600">Overview.</span>
+                ADMIN PANEL <span className="text-blue-600">Overview.</span>
               </h1>
             </header>
 
